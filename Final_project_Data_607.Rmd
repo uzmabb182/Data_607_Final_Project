@@ -1,0 +1,93 @@
+---
+title: "Data 607 - Final Project"
+output: html_document
+---
+
+### Project Proposal:
+
+Source of motivation for the final project: 
+
+https://www.forbes.com/sites/markkantrowitz/2021/05/21/how-admissions-tests-discriminate-against-low-income-and-minority-student-admissions-at-selective-colleges/amp/
+
+Links for web-scraping:
+
+https://www.nj.com/education/2019/05/see-the-sat-scores-for-every-nj-public-high-school.html
+https://www.nj.com/education/2021/04/see-sat-scores-for-every-public-high-school-in-nj.html
+https://www.nj.com/education/2018/03/heres_how_every_nj_high_school_fared_on_the_sat.html
+
+API Call to census five years data:
+
+https://api.census.gov/data/2019/acs/acs1?get=NAME,B01001_001E&for=county:*
+
+I am sharing Forbes magazine's article. My source of motivation for this project is to investigate one of the paper’s key findings including:
+
+"Students with a family income of $100,000 or more are more than twice as likely as students with family income under $50,000 to have combined SAT test scores of 1400 to 1600".
+
+I will perform web scraping to fetch SAT data for several years and API call for the census five-year data. Both of my datasets will be for the state of New Jersey counties. I will perform the linear regression and try for other regression to find the correlation between the family income and students' SAT scores.
+
+Also, perform the one of the machine learning to predict the next year's SAT outcome.
+
+
+Importing Libraries
+
+```{r}
+library(tidycensus)
+library(tidyverse)
+library(dplyr)
+library(plotly)
+library(tidyr)
+library(stringr)
+
+```
+
+
+```{r}
+Sys.setenv(census_api_key = "f7ce5a76ddf2088c73fda9c0a87410995cebbffa")
+Sys.getenv("census_api_key")
+```
+
+
+### Access the API key
+### Save the Census API key in the environmental variable.
+```{r}
+census_api_key("YOUR KEY GOES HERE", install = TRUE)
+```
+
+
+```{r}
+Sys.getenv("census_api_key")
+```
+
+
+```{r}
+# https://api.census.gov/data/2019/acs/acs1?get=NAME,B01001_001E&for=county:*
+
+nj_wide <- get_acs(
+  geography = "county",
+  state = "NJ",
+  variables = c(population = "B01003_001E",
+                median_age = "B01002_001E",
+                household_income = "B19013_001E",
+                per_capita_income = "B19301_001E",
+                poverty_count = "B17001_002E",
+                unemployment_count = "B23025_005E"
+                ),
+  output = "wide",
+  year = 2020
+)
+
+nj_wide
+```
+
+### Checking the working directory path and exporting data frame into a CSV file
+
+```{r}
+# Get working directory path
+path <- getwd()
+
+path
+
+```
+
+
+
