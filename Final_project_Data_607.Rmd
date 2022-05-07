@@ -7,13 +7,10 @@ output: html_document
 
 Source of motivation for the final project: 
 
-https://www.forbes.com/sites/markkantrowitz/2021/05/21/how-admissions-tests-discriminate-against-low-income-and-minority-student-admissions-at-selective-colleges/amp/
 
-Links for web-scraping:
+Highest level of educational attainment:	Completing College
 
-https://www.nj.com/education/2019/05/see-the-sat-scores-for-every-nj-public-high-school.html
-https://www.nj.com/education/2021/04/see-sat-scores-for-every-public-high-school-in-nj.html
-https://www.nj.com/education/2018/03/heres_how_every_nj_high_school_fared_on_the_sat.html
+ https://data.ers.usda.gov/reports.aspx?ID=17829
 
 API Call to census five years data:
 
@@ -37,6 +34,7 @@ library(dplyr)
 library(plotly)
 library(tidyr)
 library(stringr)
+library(rvest)
 
 ```
 
@@ -88,6 +86,40 @@ path <- getwd()
 path
 
 ```
+
+
+### Web Scraping Counties fips code
+
+
+### Generate the html source code by calling the read_html function
+
+```{r}
+
+webpage <- read_html("https://en.wikipedia.org/wiki/List_of_United_States_FIPS_codes_by_county")
+
+tbls <- html_nodes(webpage, "table")
+
+head(tbls)
+```
+
+### Calling html_nodes function with CSS Selector and html_table will generate the table
+
+```{r}
+# subset list of table nodes for items 3 & 4
+fips_table <- webpage %>%
+        html_nodes("#mw-content-text") %>% html_table() %>% .[[1]]
+        
+view(fips_table)
+```
+
+
+
+
+
+
+
+
+`
 
 
 
