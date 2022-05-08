@@ -1,0 +1,211 @@
+---
+title: "Data 607 - Final Project"
+output: html_document
+---
+
+### Project Proposal:
+
+Source of motivation for the final project: Community Health and Economic Prosperity
+The Problem, the Causes, the Opportunities, and
+the Solutions—At a Glance
+
+https://www.hhs.gov/sites/default/files/chep-sgr-at-a-glance.pdf
+
+
+NJ County level 2012 Diabetes Prevalence Data (CDC):
+
+https://www.openintro.org/data/index.php?data=diabetes.prev
+
+ 
+Web Scraping list of fips code: https://en.wikipedia.org/wiki/List_of_United_States_FIPS_codes_by_county
+
+
+API Call to census five years data:
+
+https://api.census.gov/data/2019/acs/acs1?get=NAME,B01001_001E&for=county:*
+
+How to achieve the objective:
+
+Find the correlation between economic conditions and health
+
+
+
+### Importing Libraries
+
+```{r}
+library(tidycensus)
+library(tidyverse)
+library(dplyr)
+library(plotly)
+library(tidyr)
+library(stringr)
+library(rvest)
+library(ggpubr)
+
+```
+
+### Preparing for API Call Census 2010 Data
+
+```{r}
+Sys.setenv(census_api_key = "f7ce5a76ddf2088c73fda9c0a87410995cebbffa")
+Sys.getenv("census_api_key")
+```
+
+
+### Access the API key
+### Save the Census API key in the environmental variable.
+
+```{r}
+#census_api_key("YOUR KEY GOES HERE", install = TRUE)
+```
+
+
+```{r}
+Sys.getenv("census_api_key")
+```
+
+### Fetching Census Data for the year 2010
+
+```{r}
+# https://api.census.gov/data/2019/acs/acs1?get=NAME,B01001_001E&for=county:*
+
+census_df <- get_acs(
+  geography = "county",
+  state = "NJ",
+  variables = c(population = "B01003_001E",
+                median_age = "B01002_001E",
+                household_income = "B19013_001E",
+                per_capita_income = "B19301_001E",
+                poverty_count = "B17001_002E",
+                unemployment_count = "B23025_005E"
+                ),
+  output = "wide",
+  year = 2020
+)
+
+head(census_df)
+
+```
+
+### Data Cleaning for census_df:
+### Removing the string 'County' from NAME column
+
+```{r}
+census_df$NAME<-gsub(" County, New Jersey","",as.character(census_df$NAME))
+
+head(census_df)
+```
+
+### Renaming column name
+
+```{r}
+census_df <- census_df %>%
+  rename(county = NAME
+         )
+head(census_df)
+```
+
+
+### Selecting the column of interest
+
+```{r}
+census_df <- select(census_df, county, population, median_age, household_income, per_capita_income, poverty_count, unemployment_count)
+
+head(census_df)
+```
+
+
+### Checking the working directory path and exporting data frame into a CSV file
+
+```{r}
+# Get working directory path
+path <- getwd()
+
+path
+
+```
+
+
+### Web Scraping Counties fips code
+
+
+### Generate the html source code by calling the read_html function
+
+```{r}
+
+webpage <- read_html("https://en.wikipedia.org/wiki/List_of_United_States_FIPS_codes_by_county")
+
+tbls <- html_nodes(webpage, "table")
+
+head(tbls)
+```
+
+### Calling html_nodes function with CSS Selector and generating the table using html_table 
+
+```{r}
+
+fips_table <- webpage %>%
+        html_nodes("#mw-content-text") %>% html_table() %>% .[[1]]
+        
+head(fips_table)
+```
+
+### Data Cleaning for fips_df:
+
+### Renaming the columns
+
+```{r}
+fips_table <- fips_table %>% 
+  rename(
+    fips_code = X1,
+    county = X2,
+    state = X3
+    )
+head(fips_table)
+```
+
+### Removing the unwanted rows
+
+```{r}
+
+fips_table <- fips_table[-c(1, 2), ]
+
+head(fips_table)
+```
+
+### Filtering the data for New Jersey
+
+```{r}
+fips_df <- filter(fips_table, state == "New Jersey")
+
+head(fips_df)
+```
+
+### Removing the string 'county' from county column
+
+```{r}
+fips_df$county<-gsub(" County","",as.character(fips_df$county))
+
+head(fips_df)
+```
+
+
+### Now joining merge_df1 to census dataset
+
+```{r}
+
+merge_df = census_df %>% inner_join(fips_df, by="county")
+
+colnames(merge_df)
+```
+
+
+
+
+### Methods for correlation analyses:
+
+There are different methods to perform correlation analysis:
+
+Pearson correlation (r), which measures a linear dependence between two variables (x and y). It’s also known as a parametric correlation test because it depends to the distribution of the data. It can be used only when x and y are from normal distribution. The plot of y = f(x) is named the linear regression curve.
+
+Kendall tau and Spearman rho, which are rank-based correlation coefficients (non-parametric)
