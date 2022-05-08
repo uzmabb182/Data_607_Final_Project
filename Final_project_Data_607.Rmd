@@ -74,7 +74,8 @@ nj_wide <- get_acs(
   year = 2020
 )
 
-nj_wide
+head(nj_wide)
+
 ```
 
 ### Checking the working directory path and exporting data frame into a CSV file
@@ -113,6 +114,9 @@ view(fips_table)
 ```
 
 
+```{r}
+housing_df <- read_csv("https://raw.githubusercontent.com/uzmabb182/Data_607_Project2/main/ers_usda_education_data.csv")
+```
 
 
 
