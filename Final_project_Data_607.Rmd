@@ -115,7 +115,9 @@ view(fips_table)
 
 
 ```{r}
-housing_df <- read_csv("https://raw.githubusercontent.com/uzmabb182/Data_607_Project2/main/ers_usda_education_data.csv")
+housing_df <- read_csv("https://raw.githubusercontent.com/uzmabb182/Data_607_Final_Project/main/RDC_Inventory_Core_Metrics_County_History2017-19.csv")
+
+head(housing_df)
 ```
 
 
