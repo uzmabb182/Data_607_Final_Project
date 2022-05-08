@@ -1,0 +1,54 @@
+---
+title: "Data 607 - Final Project"
+output: html_document
+---
+
+### Project Proposal:
+
+Source of motivation for the final project: Gentrification Analysis
+
+NJ Housing Prices dataset: https://www.realtor.com/research/data/
+
+Highest level of educational attainment:	Completing College
+
+ https://data.ers.usda.gov/reports.aspx?ID=17829
+ 
+Web Scraping list of fips code: https://en.wikipedia.org/wiki/List_of_United_States_FIPS_codes_by_county
+
+API Call to census five years data:
+
+https://api.census.gov/data/2019/acs/acs1?get=NAME,B01001_001E&for=county:*
+
+I am sharing Forbes magazine's article. My source of motivation for this project is to investigate one of the paper’s key findings including:
+
+"Students with a family income of $100,000 or more are more than twice as likely as students with family income under $50,000 to have combined SAT test scores of 1400 to 1600".
+
+I will perform web scraping to fetch SAT data for several years and API call for the census five-year data. Both of my datasets will be for the state of New Jersey counties. I will perform the linear regression and try for other regression to find the correlation between the family income and students' SAT scores.
+
+Also, perform the one of the machine learning to predict the next year's SAT outcome.
+
+
+Importing Libraries
+
+```{r}
+library(tidycensus)
+library(tidyverse)
+library(dplyr)
+library(plotly)
+library(tidyr)
+library(stringr)
+library(rvest)
+
+```
+
+```{r}
+train_df <- read_csv("https://raw.githubusercontent.com/uzmabb182/Data_607_Final_Project/main/2019loans.csv")
+
+head(train_df)
+```
+
+```{r}
+test_df <- read_csv("https://raw.githubusercontent.com/uzmabb182/Data_607_Final_Project/main/2020Q1loans.csv")
+
+head(test_df)
+```
