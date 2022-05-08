@@ -5,30 +5,29 @@ output: html_document
 
 ### Project Proposal:
 
-Source of motivation for the final project: Gentrification Analysis
+Source of motivation for the final project: Community Health and Economic Prosperity
+The Problem, the Causes, the Opportunities, and
+the Solutions—At a Glance
 
-NJ Housing Prices dataset: https://www.realtor.com/research/data/
+https://www.hhs.gov/sites/default/files/chep-sgr-at-a-glance.pdf
 
-Highest level of educational attainment:	Completing College
 
- https://data.ers.usda.gov/reports.aspx?ID=17829
+NJ County level 2012 Diabetes Prevalence Data (CDC):
+
+https://www.openintro.org/data/index.php?data=diabetes.prev
+
  
 Web Scraping list of fips code: https://en.wikipedia.org/wiki/List_of_United_States_FIPS_codes_by_county
 
+
 API Call to census five years data:
 
-https://api.census.gov/data/2019/acs/acs1?get=NAME,B01001_001E&for=county:*
-
-I am sharing Forbes magazine's article. My source of motivation for this project is to investigate one of the paper’s key findings including:
-
-"Students with a family income of $100,000 or more are more than twice as likely as students with family income under $50,000 to have combined SAT test scores of 1400 to 1600".
-
-I will perform web scraping to fetch SAT data for several years and API call for the census five-year data. Both of my datasets will be for the state of New Jersey counties. I will perform the linear regression and try for other regression to find the correlation between the family income and students' SAT scores.
-
-Also, perform the one of the machine learning to predict the next year's SAT outcome.
+https://api.census.gov/data/2010/acs/acs1?get=NAME,B01001_001E&for=county:*
 
 
-Importing Libraries
+
+
+### Importing Libraries
 
 ```{r}
 library(tidycensus)
@@ -60,9 +59,10 @@ Sys.getenv("census_api_key")
 Sys.getenv("census_api_key")
 ```
 
+### Fetching Census Data for the year 2010
 
 ```{r}
-# https://api.census.gov/data/2019/acs/acs1?get=NAME,B01001_001E&for=county:*
+# https://api.census.gov/data/2010/acs/acs1?get=NAME,B01001_001E&for=county:*
 
 nj_wide <- get_acs(
   geography = "county",
@@ -182,162 +182,46 @@ fips_df$county<-gsub(" County","",as.character(fips_df$county))
 head(fips_df)
 ```
 
-### Reading the raw NJ Housing Prices data from GitHub
+### Reading the raw NJ diabetes data from GitHub
 
 ```{r}
-housing_df <- read_csv("https://raw.githubusercontent.com/uzmabb182/Data_607_Final_Project/main/nj_housing_prices_2017_19.csv")
+diabetes_df <- read_csv("https://raw.githubusercontent.com/uzmabb182/Data_607_Final_Project/main/diabetes.prev.csv")
 
-head(housing_df)
+head(diabetes_df)
 ```
 
-### Data Cleaning for housing_df:
+### Data Cleaning for diabetes_df:
+
+### Removing the string  'county' from 'County'
 
 ```{r}
-# Split name column into two
+diabetes_df$County <-gsub(" County","",as.character(diabetes_df$County))
 
-housing_df <- housing_df %>%
-  separate(county_name, c("county", "state_abbr"), ",")
-housing_df 
+head(diabetes_df)
 ```
 
 ```{r}
-filter(housing_df, county == "mercer")
+diabetes_df <- filter(diabetes_df, State == "New Jersey")
+head(diabetes_df)
 ```
 
-
-### Data Cleaning for education_df:
-
-### Reading the education data from GitHub
-
-### Reading the raw NJ Housing Prices data from GitHub
+### Renaming column name
 
 ```{r}
-education_df <- read_csv("https://raw.githubusercontent.com/uzmabb182/Data_607_Final_Project/main/ers_usda_education.csv")
-
-head(education_df)
+diabetes_df <- diabetes_df %>%
+  rename(fips_code = FIPS.Codes
+         )
+head(diabetes_df)
 ```
-
-### Filtering the data for New Jersey
-
-```{r}
-education_df <- filter(education_df, State == "NJ")
-
-head(education_df)
-```
-
-### Cleaning/Transforming ers_usda_education_data, education_df:
-
-```{r}
-head(education_df)
-```
-
-
-```{r}
-colnames(education_df)
-```
-
-
-### Dropping 4:32 columns
-
-```{r}
-
-education_df <- select(education_df, -(4:39))
-                           
-
-head(education_df)
-```
-
-### Rename the columns by removing space with underscore
-
-```{r}
-names(education_df) <- gsub(" ", "_", names(education_df))
-
-head(education_df)
-```
-
-### Removing  comma from column names
-
-```{r}
-names(education_df) <- gsub(",", "", names(education_df))
-
-head(education_df)
-```
-
-### Removing  apostrophy from column names
-
-```{r}
-names(education_df) <- gsub("'", "", names(education_df))
-
-head(education_df)
-```
-
-### Replacing dash with underscore in column names
-
-```{r}
-names(education_df) <- gsub("-", "_", names(education_df))
-
-head(education_df)
-```
-
 
 ### Making column names to lowercase
 
 ```{r}
-names(education_df) <- tolower(names(education_df))    # Convert colnames to lower case
-head(education_df)
-```
-
-### Removing the string  'county' from 'area_name'
-
-```{r}
-education_df$area_name <-gsub(" County","",as.character(education_df$area_name))
-
-head(education_df)
-```
-
-### Dropping the duplicate rows
-
-```{r}
-education_df <- education_df %>% distinct()
-
-head(education_df)
+names(diabetes_df) <- tolower(names(diabetes_df))    # Convert colnames to lower case
+head(diabetes_df)
 ```
 
 
-### fill NA with 0 in education_df
-
-```{r}
-education_df[is.na(education_df)] <- 0
-
-head(education_df)
-```
-
-```{r}
-names(education_df)[3] <- c('county')
-
-head(education_df)
-```
-### Drop first row
-```{r}
-education_df <- education_df[-c(seq(1, 1, by=0)),]
-
-head(education_df)
-```
-
-
-```{r}
-# sort by state and county
-# sort the dataframe in R using arrange
-
-education_df <- arrange(education_df, county)
-
-head(education_df)
-```
-
-
-```{r}
-str(education_df)
-```
 
 ### Now joining Census dataset to fipscode dataset
 
@@ -361,7 +245,7 @@ merge_df1$fips_code <- as.numeric(merge_df1$fips_code)
 
 ```{r}
 
-merge_df = merge_df1 %>% inner_join(education_df,by="fips_code")
+merge_df = merge_df1 %>% inner_join(diabetes_df,by="fips_code")
 
 colnames(merge_df)
 ```
@@ -376,11 +260,11 @@ merge_df <- merge_df %>%
 head(merge_df)
 ```
 
-### Dropping 10:11 columns
+### Dropping 9:10 columns
 
 ```{r}
 
-merge_df <- select(merge_df, -(10:11))
+merge_df <- select(merge_df, -(9:10))
                            
 colnames(merge_df)
 ```
