@@ -71,21 +71,38 @@ nj_wide <- get_acs(
                 median_age = "B01002_001E",
                 household_income = "B19013_001E",
                 per_capita_income = "B19301_001E",
-                poverty_count = "B17001_002E",
-                unemployment_count = "B23025_005E"
+                poverty_count = "B17001_002E"
                 ),
   output = "wide",
-  year = 2020
+  year = 2010
 )
 
 head(nj_wide)
 
 ```
 
+### Removing the string 'County' from NAME column
+
+```{r}
+nj_wide$NAME<-gsub(" County, New Jersey","",as.character(nj_wide$NAME))
+
+head(nj_wide)
+```
+
+### Renaming column name
+
+```{r}
+nj_wide <- nj_wide %>%
+  rename(county = NAME
+         )
+head(nj_wide)
+```
+
+
 ### Selecting the column of interest
 
 ```{r}
-census_df <- select(nj_wide, population, median_age, household_income, per_capita_income, poverty_count, unemployment_count)
+census_df <- select(nj_wide, county, population, median_age, household_income, per_capita_income, poverty_count)
 
 head(census_df)
 ```
@@ -133,7 +150,7 @@ head(fips_table)
 ```{r}
 fips_table <- fips_table %>% 
   rename(
-    fips_codes = X1,
+    fips_code = X1,
     county = X2,
     state = X3
     )
@@ -182,6 +199,11 @@ housing_df <- housing_df %>%
   separate(county_name, c("county", "state_abbr"), ",")
 housing_df 
 ```
+
+```{r}
+filter(housing_df, county == "mercer")
+```
+
 
 ### Data Cleaning for education_df:
 
@@ -314,11 +336,57 @@ head(education_df)
 
 
 ```{r}
-glimpse(education_df)
+str(education_df)
 ```
 
+### Now joining Census dataset to fipscode dataset
+
+```{r}
+
+merge_df1 = census_df %>% inner_join(fips_df,by="county")
+
+str(merge_df1)
+```
+
+### #convert column 'fips_code' from character to numeric
+
+```{r}
+
+merge_df1$fips_code <- as.numeric(merge_df1$fips_code)
+
+```
 
 `
+### Now joining merge_df1 to education dataset
 
+```{r}
 
+merge_df = merge_df1 %>% inner_join(education_df,by="fips_code")
+
+colnames(merge_df)
+```
+
+### Renaming column name
+
+```{r}
+merge_df <- merge_df %>%
+  rename(county = county.x,
+         state = state.x
+         )
+head(merge_df)
+```
+
+### Dropping 10:11 columns
+
+```{r}
+
+merge_df <- select(merge_df, -(10:11))
+                           
+colnames(merge_df)
+```
+```{r}
+merge_df <- merge_df %>% relocate(fips_code, .before = county)
+merge_df <- merge_df %>% relocate(state, .after = county)
+head(merge_df)
+```
 
