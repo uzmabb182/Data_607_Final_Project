@@ -41,6 +41,7 @@ library(rvest)
 
 ```
 
+### API Call for census data for the year 2015-19
 
 ```{r}
 Sys.setenv(census_api_key = "f7ce5a76ddf2088c73fda9c0a87410995cebbffa")
@@ -51,7 +52,7 @@ Sys.getenv("census_api_key")
 ### Access the API key
 ### Save the Census API key in the environmental variable.
 ```{r}
-census_api_key("YOUR KEY GOES HERE", install = TRUE)
+#census_api_key("YOUR KEY GOES HERE", install = TRUE)
 ```
 
 
@@ -81,6 +82,15 @@ head(nj_wide)
 
 ```
 
+### Selecting the column of interest
+
+```{r}
+census_df <- select(nj_wide, population, median_age, household_income, per_capita_income, poverty_count, unemployment_count)
+
+head(census_df)
+```
+
+
 ### Checking the working directory path and exporting data frame into a CSV file
 
 ```{r}
@@ -106,7 +116,7 @@ tbls <- html_nodes(webpage, "table")
 head(tbls)
 ```
 
-### Calling html_nodes function with CSS Selector and html_table will generate the table
+### Calling html_nodes function with CSS Selector and generating the table using html_table 
 
 ```{r}
 # subset list of table nodes for items 3 & 4
@@ -116,6 +126,9 @@ fips_table <- webpage %>%
 head(fips_table)
 ```
 
+### Data Cleaning for fips_df:
+
+### Renaming the columns
 
 ```{r}
 fips_table <- fips_table %>% 
@@ -127,6 +140,8 @@ fips_table <- fips_table %>%
 head(fips_table)
 ```
 
+### Removing the unwanted rows
+
 ```{r}
 
 fips_table <- fips_table[-c(1, 2), ]
@@ -134,11 +149,15 @@ fips_table <- fips_table[-c(1, 2), ]
 head(fips_table)
 ```
 
+### Filtering the data for New Jersey
+
 ```{r}
 fips_df <- filter(fips_table, state == "New Jersey")
 
 head(fips_df)
 ```
+
+### Removing the string 'county' from county column
 
 ```{r}
 fips_df$county<-gsub(" County","",as.character(fips_df$county))
@@ -146,12 +165,15 @@ fips_df$county<-gsub(" County","",as.character(fips_df$county))
 head(fips_df)
 ```
 
+### Reading the raw NJ Housing Prices data from GitHub
 
 ```{r}
-housing_df <- read_csv("https://raw.githubusercontent.com/uzmabb182/Data_607_Final_Project/main/RDC_Inventory_Core_Metrics_County_History2017-19.csv")
+housing_df <- read_csv("https://raw.githubusercontent.com/uzmabb182/Data_607_Final_Project/main/nj_housing_prices_2017_19.csv")
 
 head(housing_df)
 ```
+
+### Data Cleaning for housing_df:
 
 ```{r}
 # Split name column into two
@@ -161,8 +183,139 @@ housing_df <- housing_df %>%
 housing_df 
 ```
 
+### Data Cleaning for education_df:
+
+### Reading the education data from GitHub
+
+### Reading the raw NJ Housing Prices data from GitHub
+
+```{r}
+education_df <- read_csv("https://raw.githubusercontent.com/uzmabb182/Data_607_Final_Project/main/ers_usda_education.csv")
+
+head(education_df)
+```
+
+### Filtering the data for New Jersey
+
+```{r}
+education_df <- filter(education_df, State == "NJ")
+
+head(education_df)
+```
+
+### Cleaning/Transforming ers_usda_education_data, education_df:
+
+```{r}
+head(education_df)
+```
 
 
+```{r}
+colnames(education_df)
+```
+
+
+### Dropping 4:32 columns
+
+```{r}
+
+education_df <- select(education_df, -(4:39))
+                           
+
+head(education_df)
+```
+
+### Rename the columns by removing space with underscore
+
+```{r}
+names(education_df) <- gsub(" ", "_", names(education_df))
+
+head(education_df)
+```
+
+### Removing  comma from column names
+
+```{r}
+names(education_df) <- gsub(",", "", names(education_df))
+
+head(education_df)
+```
+
+### Removing  apostrophy from column names
+
+```{r}
+names(education_df) <- gsub("'", "", names(education_df))
+
+head(education_df)
+```
+
+### Replacing dash with underscore in column names
+
+```{r}
+names(education_df) <- gsub("-", "_", names(education_df))
+
+head(education_df)
+```
+
+
+### Making column names to lowercase
+
+```{r}
+names(education_df) <- tolower(names(education_df))    # Convert colnames to lower case
+head(education_df)
+```
+
+### Removing the string  'county' from 'area_name'
+
+```{r}
+education_df$area_name <-gsub(" County","",as.character(education_df$area_name))
+
+head(education_df)
+```
+
+### Dropping the duplicate rows
+
+```{r}
+education_df <- education_df %>% distinct()
+
+head(education_df)
+```
+
+
+### fill NA with 0 in education_df
+
+```{r}
+education_df[is.na(education_df)] <- 0
+
+head(education_df)
+```
+
+```{r}
+names(education_df)[3] <- c('county')
+
+head(education_df)
+```
+### Drop first row
+```{r}
+education_df <- education_df[-c(seq(1, 1, by=0)),]
+
+head(education_df)
+```
+
+
+```{r}
+# sort by state and county
+# sort the dataframe in R using arrange
+
+education_df <- arrange(education_df, county)
+
+head(education_df)
+```
+
+
+```{r}
+glimpse(education_df)
+```
 
 
 `
