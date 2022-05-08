@@ -24,6 +24,9 @@ API Call to census five years data:
 
 https://api.census.gov/data/2010/acs/acs1?get=NAME,B01001_001E&for=county:*
 
+How to achieve the objective:
+
+Find the correlation between economic conditions and health
 
 
 
@@ -37,10 +40,11 @@ library(plotly)
 library(tidyr)
 library(stringr)
 library(rvest)
+library(ggpubr)
 
 ```
 
-### API Call for census data for the year 2015-19
+### Preparing for API Call Census 2010 Data
 
 ```{r}
 Sys.setenv(census_api_key = "f7ce5a76ddf2088c73fda9c0a87410995cebbffa")
@@ -50,6 +54,7 @@ Sys.getenv("census_api_key")
 
 ### Access the API key
 ### Save the Census API key in the environmental variable.
+
 ```{r}
 #census_api_key("YOUR KEY GOES HERE", install = TRUE)
 ```
@@ -64,7 +69,7 @@ Sys.getenv("census_api_key")
 ```{r}
 # https://api.census.gov/data/2010/acs/acs1?get=NAME,B01001_001E&for=county:*
 
-nj_wide <- get_acs(
+census_df <- get_acs(
   geography = "county",
   state = "NJ",
   variables = c(population = "B01003_001E",
@@ -77,32 +82,33 @@ nj_wide <- get_acs(
   year = 2010
 )
 
-head(nj_wide)
+head(census_df)
 
 ```
 
+### Data Cleaning for census_df:
 ### Removing the string 'County' from NAME column
 
 ```{r}
-nj_wide$NAME<-gsub(" County, New Jersey","",as.character(nj_wide$NAME))
+census_df$NAME<-gsub(" County, New Jersey","",as.character(census_df$NAME))
 
-head(nj_wide)
+head(census_df)
 ```
 
 ### Renaming column name
 
 ```{r}
-nj_wide <- nj_wide %>%
+census_df <- census_df %>%
   rename(county = NAME
          )
-head(nj_wide)
+head(census_df)
 ```
 
 
 ### Selecting the column of interest
 
 ```{r}
-census_df <- select(nj_wide, county, population, median_age, household_income, per_capita_income, poverty_count)
+census_df <- select(census_df, county, population, median_age, household_income, per_capita_income, poverty_count)
 
 head(census_df)
 ```
@@ -136,7 +142,7 @@ head(tbls)
 ### Calling html_nodes function with CSS Selector and generating the table using html_table 
 
 ```{r}
-# subset list of table nodes for items 3 & 4
+
 fips_table <- webpage %>%
         html_nodes("#mw-content-text") %>% html_table() %>% .[[1]]
         
@@ -182,7 +188,7 @@ fips_df$county<-gsub(" County","",as.character(fips_df$county))
 head(fips_df)
 ```
 
-### Reading the raw NJ diabetes data from GitHub
+### Reading the raw NJ diabetes data for the year 2012 from GitHub
 
 ```{r}
 diabetes_df <- read_csv("https://raw.githubusercontent.com/uzmabb182/Data_607_Final_Project/main/diabetes.prev.csv")
@@ -232,7 +238,7 @@ merge_df1 = census_df %>% inner_join(fips_df,by="county")
 str(merge_df1)
 ```
 
-### #convert column 'fips_code' from character to numeric
+### Convert column 'fips_code' from character to numeric
 
 ```{r}
 
@@ -271,6 +277,17 @@ colnames(merge_df)
 ```{r}
 merge_df <- merge_df %>% relocate(fips_code, .before = county)
 merge_df <- merge_df %>% relocate(state, .after = county)
-head(merge_df)
+glimpse(merge_df)
 ```
 
+```{r}
+
+```
+
+### Methods for correlation analyses:
+
+There are different methods to perform correlation analysis:
+
+Pearson correlation (r), which measures a linear dependence between two variables (x and y). It’s also known as a parametric correlation test because it depends to the distribution of the data. It can be used only when x and y are from normal distribution. The plot of y = f(x) is named the linear regression curve.
+
+Kendall tau and Spearman rho, which are rank-based correlation coefficients (non-parametric)
