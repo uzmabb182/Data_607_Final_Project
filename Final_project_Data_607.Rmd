@@ -110,7 +110,37 @@ head(tbls)
 fips_table <- webpage %>%
         html_nodes("#mw-content-text") %>% html_table() %>% .[[1]]
         
-view(fips_table)
+head(fips_table)
+```
+
+
+```{r}
+fips_table <- fips_table %>% 
+  rename(
+    fips_codes = X1,
+    county = X2,
+    state = X3
+    )
+head(fips_table)
+```
+
+```{r}
+
+fips_table <- fips_table[-c(1, 2), ]
+
+head(fips_table)
+```
+
+```{r}
+fips_df <- filter(fips_table, state == "New Jersey")
+
+head(fips_df)
+```
+
+```{r}
+fips_df$county<-gsub(" County","",as.character(fips_df$county))
+
+head(fips_df)
 ```
 
 
@@ -120,6 +150,13 @@ housing_df <- read_csv("https://raw.githubusercontent.com/uzmabb182/Data_607_Fin
 head(housing_df)
 ```
 
+```{r}
+# Split name column into two
+
+housing_df <- housing_df %>%
+  separate(county_name, c("county", "state_abbr"), ",")
+housing_df 
+```
 
 
 
