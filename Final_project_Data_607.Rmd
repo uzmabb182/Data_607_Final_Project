@@ -5,12 +5,15 @@ output: html_document
 
 ### Project Proposal:
 
-Source of motivation for the final project: 
+Source of motivation for the final project: Gentrification Analysis
 
+NJ Housing Prices dataset: https://www.realtor.com/research/data/
 
 Highest level of educational attainment:	Completing College
 
  https://data.ers.usda.gov/reports.aspx?ID=17829
+ 
+Web Scraping list of fips code: https://en.wikipedia.org/wiki/List_of_United_States_FIPS_codes_by_county
 
 API Call to census five years data:
 
