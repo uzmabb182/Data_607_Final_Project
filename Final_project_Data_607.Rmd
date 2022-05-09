@@ -71,7 +71,6 @@ Sys.getenv("census_api_key")
 
 census_df <- get_acs(
   geography = "county",
-  state = "NJ",
   variables = c(population = "B01003_001E",
                 median_age = "B01002_001E",
                 household_income = "B19013_001E",
@@ -91,27 +90,34 @@ head(census_df)
 ### Removing the string 'County' from NAME column
 
 ```{r}
-census_df$NAME<-gsub(" County, New Jersey","",as.character(census_df$NAME))
-
+#census_df$NAME<-gsub(" County, *","",as.character(census_df$NAME))
+census_df <- census_df %>%
+  separate(NAME, c("county", "state"), ",")
 head(census_df)
 ```
 
 ### Renaming column name
 
 ```{r}
-census_df <- census_df %>%
-  rename(county = NAME
-         )
-head(census_df)
+#census_df <- census_df %>%
+ # rename(county = NAME
+         #)
+#head(census_df)
+```
+
+### Dropping null rows
+```{r}
+census_df <- na.omit(census_df) # Method 1 - Remove NA
+census_df
 ```
 
 
 ### Selecting the column of interest
 
 ```{r}
-census_df <- select(census_df, county, population, median_age, household_income, per_capita_income, poverty_count, unemployment_count)
+census_df <- select(census_df, county, state, population, median_age, household_income, per_capita_income, poverty_count, unemployment_count)
 
-head(census_df)
+str(census_df)
 ```
 
 
@@ -168,35 +174,46 @@ head(fips_table)
 
 ```{r}
 
-fips_table <- fips_table[-c(1, 2), ]
+fips_df <- fips_table[-c(1, 2), ]
 
-head(fips_table)
+head(fips_df)
 ```
+
+```{r}
+fips_df <- na.omit(fips_df) # Method 1 - Remove NA
+fips_df
+```
+
 
 ### Filtering the data for New Jersey
 
 ```{r}
-fips_df <- filter(fips_table, state == "New Jersey")
+# fips_df <- filter(fips_table, state == "New Jersey")
 
-head(fips_df)
+# head(fips_df)
 ```
 
 ### Removing the string 'county' from county column
 
 ```{r}
-fips_df$county<-gsub(" County","",as.character(fips_df$county))
+# fips_df$county<-gsub(" County","",as.character(fips_df$county))
 
-head(fips_df)
+str(fips_df)
 ```
 
 
 ### Now joining fips_df to census dataset
 
 ```{r}
+#merge_df <- merge(census_df, fips_df, by = c("county", "state"))  # Applying inner_join() function
+#merge_df  
+#merge_df <- census_df %>% inner_join(fips_df, by = "county")
 
-merge_df <- census_df %>% inner_join(fips_df, by="county")
+#merge two data frames
+#merge_df = merge(census_df, fips_df, by.x=c("county", "state"), by.y=c("county", "state"))
+merge(census_df, fips_df, by=c("county", "state"))
 
-str(merge_df)
+head(merge_df)
 ```
 
 
@@ -223,7 +240,7 @@ education_df <- rename_with(education_df, ~ tolower(gsub(",", "", .x, fixed = TR
 education_df <- rename_with(education_df, ~ tolower(gsub("'s", "", .x, fixed = TRUE)))
 education_df <- rename_with(education_df, ~ tolower(gsub(" ", "_", .x, fixed = TRUE)))
 education_df <- rename_with(education_df, ~ tolower(gsub("-", "_", .x, fixed = TRUE)))
-str(education_df)
+head(education_df)
 ```
 
 
@@ -238,7 +255,7 @@ merge_df$fips_code <- as.integer(merge_df$fips_code)
 
 new_df <- merge_df %>% inner_join(education_df, by="fips_code")
 
-head(new_df)
+view(new_df)
 ```
 
 ```{r}
@@ -246,7 +263,7 @@ new_df <- new_df %>%
   relocate(fips_code, .before=county)
 new_df <-new_df %>% 
   relocate(state, .after=county)
-head(new_df)
+view(new_df)
 ```
 
 ### Building the Model:
