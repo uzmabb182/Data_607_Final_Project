@@ -5,16 +5,16 @@ output: html_document
 
 ### Project Proposal:
 
-Source of motivation for the final project: Community Health and Economic Prosperity
-The Problem, the Causes, the Opportunities, and
-the Solutions—At a Glance
+Source of motivation for the final project: Education and Socioeconomic Status
 
-https://www.hhs.gov/sites/default/files/chep-sgr-at-a-glance.pdf
+https://www.apa.org/pi/ses/resources/publications/education
 
 
-NJ County level 2012 Diabetes Prevalence Data (CDC):
 
-https://www.openintro.org/data/index.php?data=diabetes.prev
+Economic Research Service
+U.S. DEPARTMENT OF AGRICULTURE:
+
+https://www.ers.usda.gov/data-products/county-level-data-sets/download-data/
 
  
 Web Scraping list of fips code: https://en.wikipedia.org/wiki/List_of_United_States_FIPS_codes_by_county
