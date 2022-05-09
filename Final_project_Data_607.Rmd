@@ -190,22 +190,110 @@ head(fips_df)
 ```
 
 
-### Now joining merge_df1 to census dataset
+### Now joining fips_df to census dataset
 
 ```{r}
 
-merge_df = census_df %>% inner_join(fips_df, by="county")
+merge_df <- census_df %>% inner_join(fips_df, by="county")
 
-colnames(merge_df)
+str(merge_df)
+```
+
+
+```{r}
+education_df <- read_csv("https://raw.githubusercontent.com/uzmabb182/Data_607_Final_Project/main/ers_usda_education.csv")
+
+head(education_df)
+```
+
+```{r}
+#colnames(education_df)
+
+```
+
+```{r}
+education_df <- education_df[-c(2:40)]
+education_df <- education_df[-c(1),]
+
+head(education_df)
+```
+
+```{r}
+education_df <- rename_with(education_df, ~ tolower(gsub(",", "", .x, fixed = TRUE)))
+education_df <- rename_with(education_df, ~ tolower(gsub("'s", "", .x, fixed = TRUE)))
+education_df <- rename_with(education_df, ~ tolower(gsub(" ", "_", .x, fixed = TRUE)))
+education_df <- rename_with(education_df, ~ tolower(gsub("-", "_", .x, fixed = TRUE)))
+str(education_df)
 ```
 
 
 
 
-### Methods for correlation analyses:
+```{r}
+merge_df$fips_code <- as.integer(merge_df$fips_code) 
+```
 
-There are different methods to perform correlation analysis:
 
-Pearson correlation (r), which measures a linear dependence between two variables (x and y). It’s also known as a parametric correlation test because it depends to the distribution of the data. It can be used only when x and y are from normal distribution. The plot of y = f(x) is named the linear regression curve.
+```{r}
 
-Kendall tau and Spearman rho, which are rank-based correlation coefficients (non-parametric)
+new_df <- merge_df %>% inner_join(education_df, by="fips_code")
+
+head(new_df)
+```
+
+```{r}
+new_df <- new_df %>% 
+  relocate(fips_code, .before=county)
+new_df <-new_df %>% 
+  relocate(state, .after=county)
+head(new_df)
+```
+
+### Building the Model:
+
+To build a model for estimating unemployment_count based on the household_income + per_capita_income + poverty_count:
+
+sales = b0 + b1*household_income + b2*per_capita_income + b3*poverty_count
+
+Compute the model coefficients:
+
+```{r}
+model <- lm(unemployment_count ~ household_income + per_capita_income + poverty_count, data = new_df)
+summary(model)
+```
+
+### Interpretation:
+
+The first step in interpreting the multiple regression analysis is to examine the F-statistic and the associated p-value.
+
+The p-value of 7.823e-09 is less than alpha=0.05, which is highly significant. This means that, at least, one of the predictor variables is significantly related to the outcome variable.
+
+To see which predictor variables are significant, you can examine the coefficients table, which shows the estimate of regression beta coefficients and the associated t-statitic p-values:
+
+```{r}
+summary(model)$coefficient
+```
+
+The t-statistic evaluates whether or not there is significant association between the predictor and the outcome variable, that is whether the beta coefficient of the predictor is significantly different from zero.
+
+And changing in poverty_count are significantly associated to changes in unemployment_count while changes in household_income, and  per_capita_income is not significantly associated with unemployment_count.
+
+### The confidence interval of the model coefficient can be:
+
+```{r}
+confint(model)
+```
+
+### The error rate can be estimated by dividing the RSE by the mean outcome variable:
+
+```{r}
+sigma(model)/mean(new_df$unemployment_count)
+```
+
+### To compute multiple regression using all of the predictors in the dataset
+
+```{r}
+model <- lm(percent_of_adults_with_a_bachelor_degree_or_higher_2015_19 ~ household_income, data = new_df)
+summary(model)
+```
+
