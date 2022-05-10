@@ -28,7 +28,11 @@ How to achieve the objective:
 
 Find the correlation between economic conditions and health
 
-
+White = "B03002_003",
+                Black = "B03002_004",
+                Native = "B03002_005",
+                Asian = "B03002_006",
+                Hispanic = "B03002_012"
 
 ### Importing Libraries
 
@@ -44,100 +48,6 @@ library(ggpubr)
 
 ```
 
-### Preparing for API Call Census 2010 Data
-
-```{r}
-Sys.setenv(census_api_key = "f7ce5a76ddf2088c73fda9c0a87410995cebbffa")
-Sys.getenv("census_api_key")
-```
-
-
-### Access the API key
-### Save the Census API key in the environmental variable.
-
-```{r}
-#census_api_key("YOUR KEY GOES HERE", install = TRUE)
-```
-
-
-```{r}
-Sys.getenv("census_api_key")
-```
-
-### Fetching Census Data for the year 2010
-
-```{r}
-# https://api.census.gov/data/2019/acs/acs1?get=NAME,B01001_001E&for=county:*
-
-census_df <- get_acs(
-  geography = "county",
-  variables = c(population = "B01003_001E",
-                median_age = "B01002_001E",
-                household_income = "B19013_001E",
-                per_capita_income = "B19301_001E",
-                poverty_count = "B17001_002E",
-                unemployment_count = "B23025_005E"
-                ),
-  output = "wide",
-  year = 2020
-)
-
-head(census_df)
-
-```
-
-### Data Cleaning for census_df:
-### Removing the string 'County' from NAME column
-
-```{r}
-#census_df$NAME<-gsub(" County, *","",as.character(census_df$NAME))
-census_df <- census_df %>%
-  separate(NAME, c("county", "state"), ",")
-head(census_df)
-```
-### Removing string 'county'
-
-```{r}
-census_df$county<-gsub(" County","",as.character(census_df$county))
-
-head(census_df)
-```
-
-
-### Renaming column name
-
-```{r}
-#census_df <- census_df %>%
- # rename(county = NAME
-         #)
-#head(census_df)
-```
-
-### Dropping null rows
-```{r}
-census_df <- na.omit(census_df) #  Remove NA
-head(census_df)
-```
-
-
-### Selecting the column of interest
-
-```{r}
-census_df <- select(census_df, county, state, population, median_age, household_income, per_capita_income, poverty_count, unemployment_count)
-
-str(census_df)
-```
-
-
-### Checking the working directory path and exporting data frame into a CSV file
-
-```{r}
-# Get working directory path
-path <- getwd()
-
-path
-
-```
 
 
 ### Web Scraping Counties fips code
@@ -188,6 +98,12 @@ head(fips_df)
 ```
 
 ```{r}
+fips_df$NAME = paste(fips_df$county, fips_df$state, sep=", ")
+head(fips_df)
+```
+
+
+```{r}
 fips_df <- na.omit(fips_df) # Method 1 - Remove NA
 head(fips_df)
 ```
@@ -211,16 +127,130 @@ head(fips_df)
 ### Removing the string 'county' from county column
 
 ```{r}
-# fips_df$county<-gsub(" County","",as.character(fips_df$county))
+#fips_df$county<-gsub(" County","",as.character(fips_df$county))
 
+```
+
+
+```{r}
+#str(census_df)
 str(fips_df)
 ```
 
 
+### Preparing for API Call Census 2010 Data
+
+```{r}
+Sys.setenv(census_api_key = "f7ce5a76ddf2088c73fda9c0a87410995cebbffa")
+Sys.getenv("census_api_key")
+```
+
+
+### Access the API key
+### Save the Census API key in the environmental variable.
+
+```{r}
+#census_api_key("YOUR KEY GOES HERE", install = TRUE)
+```
+
+
+```{r}
+Sys.getenv("census_api_key")
+```
+
+### Fetching Census Data for the year 2010
+
+```{r}
+# https://api.census.gov/data/2019/acs/acs1?get=NAME,B01001_001E&for=county:*
+
+census_df <- get_acs(
+  geography = "county",
+  variables = c(population = "B01003_001E",
+                median_age = "B01002_001E",
+                household_income = "B19013_001E",
+                per_capita_income = "B19301_001E",
+                poverty_count = "B17001_002E",
+                unemployment_count = "B23025_005E"
+                ),
+  output = "wide",
+  year = 2020
+)
+
+head(census_df)
+
+```
+
+```{r}
+census_df <- census_df %>% inner_join(fips_df, by = "NAME")
+
+census_df
+```
+
+
+
+
+### Data Cleaning for census_df:
+### Removing the string 'County' from NAME column
+
+```{r}
+#census_df$NAME<-gsub(" County, *","",as.character(census_df$NAME))
+census_df <- census_df %>%
+  separate(NAME, c("county", "state"), ",")
+head(census_df)
+```
+
+### Removing string 'county'
+
+```{r}
+census_df$county<-gsub(" County","",as.character(census_df$county))
+
+head(census_df)
+```
+
+
+### Renaming column name
+
+```{r}
+#census_df <- census_df %>%
+ # rename(county = NAME
+         #)
+#head(census_df)
+```
+
+### Dropping null rows
+```{r}
+census_df <- na.omit(census_df) #  Remove NA
+head(census_df)
+```
+
+
+
+
+### Selecting the column of interest
+
+```{r}
+census_df <- select(census_df, fips_code, county, state, population, median_age, household_income, per_capita_income, poverty_count, unemployment_count)
+
+str(census_df)
+```
+
+
+### Checking the working directory path and exporting data frame into a CSV file
+
+```{r}
+# Get working directory path
+path <- getwd()
+
+path
+
+```
+
+`
+
 ### Now joining fips_df to census dataset
 
 ```{r}
-#merge_df <- merge(census_df, fips_df, by = c("county", "state"))  # Applying inner_join() function
+merge_df <- inner_join(census_df, fips_df, by = c("county", "state"))  # Applying inner_join() function
 #merge_df  
 #merge_df <- census_df %>% inner_join(fips_df, by = "county")
 
@@ -242,7 +272,7 @@ head(education_df)
 ```
 
 ```{r}
-#colnames(education_df)
+colnames(education_df)
 
 ```
 
@@ -263,29 +293,42 @@ head(education_df)
 
 ```{r}
 education_df <- na.omit(education_df) # Method 1 - Remove NA
-view(education_df)
+head(education_df)
 ```
 
-
-
 ```{r}
-merge_df$fips_code <- as.integer(merge_df$fips_code) 
+str(education_df)
 ```
 
 
 ```{r}
+census_df$fips_code <- as.integer(census_df$fips_code) 
+education_df$fips_code <- as.integer(education_df$fips_code)
+```
 
-#new_df <- fips_df %>% inner_join(education_df, by="fips_code")
+
+```{r}
+str(census_df)
+#str(education_df)
+```
+
+
+```{r}
+
+new_df <- education_df %>% inner_join(census_df, by="fips_code")
+       # Join by multiple columns
 
 head(new_df)
 ```
+
+
 
 ```{r}
 new_df <- new_df %>% 
   relocate(fips_code, .before=county)
 new_df <-new_df %>% 
   relocate(state, .after=county)
-view(new_df)
+nrow(new_df)
 ```
 
 ### Building the Model:
