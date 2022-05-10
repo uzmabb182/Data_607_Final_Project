@@ -54,6 +54,7 @@ train_df <- read_csv("https://raw.githubusercontent.com/uzmabb182/Data_607_Final
 
 head(train_df)
 ```
+
 ```{r}
 dim(train_df)
 ```
@@ -178,5 +179,51 @@ cbind(freq=table(train_df$loan_status), percentage=percentage)
 # # Create our target-2019
 y_train_df <-  train_df$loan_status
 
+```
+
+```{r}
+cardio_df <- read_csv("https://raw.githubusercontent.com/uzmabb182/Data_607_Final_Project/main/cardiovascular_disease.csv")
+
+head(cardio_df)
+```
+
+
+
+```{r}
+library(caret)
+# create a list of 80% of the rows in the original dataset we can use for training
+validation_index <- createDataPartition(cardio_df$cardio, p=0.80, list=FALSE)
+```
+
+
+
+```{r}
+# select 20% of the data for validation
+validation <- cardio_df[-validation_index,]
+```
+
+
+```{r}
+# use the remaining 80% of data to training and testing the models
+cardio_df <- cardio_df[validation_index,]
+```
+
+```{r}
+# dimensions of dataset
+dim(cardio_df)
+```
+
+```{r}
+# list types for each attribute
+sapply(cardio_df, class)
+```
+
+```{r}
+head(cardio_df)
+```
+
+```{r}
+# list the levels for the class
+levels(cardio_df$cardio)
 ```
 

@@ -95,6 +95,14 @@ census_df <- census_df %>%
   separate(NAME, c("county", "state"), ",")
 head(census_df)
 ```
+### Removing string 'county'
+
+```{r}
+census_df$county<-gsub(" County","",as.character(census_df$county))
+
+head(census_df)
+```
+
 
 ### Renaming column name
 
@@ -107,8 +115,8 @@ head(census_df)
 
 ### Dropping null rows
 ```{r}
-census_df <- na.omit(census_df) # Method 1 - Remove NA
-census_df
+census_df <- na.omit(census_df) #  Remove NA
+head(census_df)
 ```
 
 
@@ -181,9 +189,16 @@ head(fips_df)
 
 ```{r}
 fips_df <- na.omit(fips_df) # Method 1 - Remove NA
-fips_df
+head(fips_df)
 ```
 
+### Removing string 'county'
+
+```{r}
+fips_df$county<-gsub(" County","",as.character(fips_df$county))
+
+head(fips_df)
+```
 
 ### Filtering the data for New Jersey
 
@@ -211,8 +226,11 @@ str(fips_df)
 
 #merge two data frames
 #merge_df = merge(census_df, fips_df, by.x=c("county", "state"), by.y=c("county", "state"))
-merge(census_df, fips_df, by=c("county", "state"))
+#merge_df <- merge(census_df, fips_df, by = c('county', 'state'))
 
+# merge two data frames in r
+# r merge data frames by multiple columns
+#jointdataset <- merge(ChickWeight, LabResults, by = c('Diet','Time'))
 head(merge_df)
 ```
 
@@ -243,6 +261,10 @@ education_df <- rename_with(education_df, ~ tolower(gsub("-", "_", .x, fixed = T
 head(education_df)
 ```
 
+```{r}
+education_df <- na.omit(education_df) # Method 1 - Remove NA
+view(education_df)
+```
 
 
 
@@ -253,9 +275,9 @@ merge_df$fips_code <- as.integer(merge_df$fips_code)
 
 ```{r}
 
-new_df <- merge_df %>% inner_join(education_df, by="fips_code")
+#new_df <- fips_df %>% inner_join(education_df, by="fips_code")
 
-view(new_df)
+head(new_df)
 ```
 
 ```{r}
@@ -275,7 +297,7 @@ sales = b0 + b1*household_income + b2*per_capita_income + b3*poverty_count
 Compute the model coefficients:
 
 ```{r}
-model <- lm(unemployment_count ~ household_income + per_capita_income + poverty_count, data = new_df)
+model <- lm(unemployment_count ~ household_income + per_capita_income + poverty_count, data = census_df)
 summary(model)
 ```
 
@@ -304,7 +326,7 @@ confint(model)
 ### The error rate can be estimated by dividing the RSE by the mean outcome variable:
 
 ```{r}
-sigma(model)/mean(new_df$unemployment_count)
+sigma(model)/mean(census_df$unemployment_count)
 ```
 
 ### To compute multiple regression using all of the predictors in the dataset
