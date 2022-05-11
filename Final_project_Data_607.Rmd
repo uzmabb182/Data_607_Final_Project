@@ -187,13 +187,11 @@ census_df
 ```
 
 
-
-
 ### Data Cleaning for census_df:
 ### Removing the string 'County' from NAME column
 
 ```{r}
-#census_df$NAME<-gsub(" County, *","",as.character(census_df$NAME))
+
 census_df <- census_df %>%
   separate(NAME, c("county", "state"), ",")
 head(census_df)
@@ -208,14 +206,6 @@ head(census_df)
 ```
 
 
-### Renaming column name
-
-```{r}
-#census_df <- census_df %>%
- # rename(county = NAME
-         #)
-#head(census_df)
-```
 
 ### Dropping null rows
 ```{r}
@@ -224,14 +214,18 @@ head(census_df)
 ```
 
 
-
-
 ### Selecting the column of interest
 
 ```{r}
 census_df <- select(census_df, fips_code, county, state, population, median_age, household_income, per_capita_income, poverty_count, unemployment_count)
 
 str(census_df)
+```
+
+### Visualize the Census data
+
+```{r}
+
 ```
 
 
@@ -251,16 +245,7 @@ path
 
 ```{r}
 merge_df <- inner_join(census_df, fips_df, by = c("county", "state"))  # Applying inner_join() function
-#merge_df  
-#merge_df <- census_df %>% inner_join(fips_df, by = "county")
 
-#merge two data frames
-#merge_df = merge(census_df, fips_df, by.x=c("county", "state"), by.y=c("county", "state"))
-#merge_df <- merge(census_df, fips_df, by = c('county', 'state'))
-
-# merge two data frames in r
-# r merge data frames by multiple columns
-#jointdataset <- merge(ChickWeight, LabResults, by = c('Diet','Time'))
 head(merge_df)
 ```
 
@@ -272,7 +257,7 @@ head(education_df)
 ```
 
 ```{r}
-colnames(education_df)
+#colnames(education_df)
 
 ```
 
@@ -300,6 +285,12 @@ head(education_df)
 str(education_df)
 ```
 
+### Visualize the education dataset:
+
+```{r}
+
+```
+
 
 ```{r}
 census_df$fips_code <- as.integer(census_df$fips_code) 
@@ -308,19 +299,22 @@ education_df$fips_code <- as.integer(education_df$fips_code)
 
 
 ```{r}
-str(census_df)
+#str(census_df)
 #str(education_df)
+
+dim(census_df)
+#dim(education_df)
+
 ```
 
 
 ```{r}
 
-new_df <- education_df %>% inner_join(census_df, by="fips_code")
+new_df <- census_df %>% inner_join(education_df, by="fips_code")
        # Join by multiple columns
 
-head(new_df)
+nrow(new_df)
 ```
-
 
 
 ```{r}
@@ -328,23 +322,54 @@ new_df <- new_df %>%
   relocate(fips_code, .before=county)
 new_df <-new_df %>% 
   relocate(state, .after=county)
-nrow(new_df)
+head(new_df)
 ```
+
+
+```{r}
+new_df$name = paste(new_df$county, new_df$state, sep=", ")
+head(new_df)
+```
+
+
+```{r}
+new_df <- select(new_df, name, population, median_age, household_income, per_capita_income, poverty_count, unemployment_count, bachelor_degree_or_higher_2015_19)
+
+head(new_df)
+```
+
+
+### Regression: 
+Regression is a supervised learning algorithm which helps in determining how does one variable influence another variable.
+
+Multiple linear regression is useful for modelling the relationship between a numeric or dependent variable (Y) and multiple explanatory or independent variable (X).
+
+After merging fips code, census, and education data, we would like to analyze the 
 
 ### Building the Model:
 
-To build a model for estimating unemployment_count based on the household_income + per_capita_income + poverty_count:
 
-sales = b0 + b1*household_income + b2*per_capita_income + b3*poverty_count
+To build a model for estimating bachelor_degree_or_higher_2015_19 based on the population + median_age + household_income + per_capita_income + poverty_count + unemployment_count
+
+#### bachelor_degree_or_higher_2015_19 = b0 + b1*population + b2*median_age + b3*household_income + b4*per_capita_income + b5*poverty_count + b6*unemployment_count
 
 Compute the model coefficients:
 
 ```{r}
-model <- lm(unemployment_count ~ household_income + per_capita_income + poverty_count, data = census_df)
+model <- lm(bachelor_degree_or_higher_2015_19 ~ population + median_age + household_income + per_capita_income + poverty_count + unemployment_count, data = new_df)
 summary(model)
 ```
 
+The F-Test of overall significance in regression is a test of whether or not your linear regression model provides a better fit to a dataset than a model with no predictor variables. 
+
+The F-Test of overall significance has the following two hypotheses:
+
+Null hypothesis (H0) : The model with no predictor variables (also known as an intercept-only model) fits the data as well as your regression model.
+
+Alternative hypothesis (HA) : Your regression model fits the data better than the intercept-only model.
+
 ### Interpretation:
+
 
 The first step in interpreting the multiple regression analysis is to examine the F-statistic and the associated p-value.
 
@@ -369,13 +394,24 @@ confint(model)
 ### The error rate can be estimated by dividing the RSE by the mean outcome variable:
 
 ```{r}
-sigma(model)/mean(census_df$unemployment_count)
+sigma(model)/mean(new_df$bachelor_degree_or_higher_2015_19)
 ```
 
-### To compute multiple regression using all of the predictors in the dataset
+
 
 ```{r}
-model <- lm(percent_of_adults_with_a_bachelor_degree_or_higher_2015_19 ~ household_income, data = new_df)
-summary(model)
+
+ggscatter(new_df, x = "bachelor_degree_or_higher_2015_19", y = "poverty_count", 
+          add = "reg.line", conf.int = TRUE, 
+          cor.coef = TRUE, cor.method = "pearson",
+          xlab = "bachelor_degree_or_higher_2015_19", ylab = "poverty_count", col = "red")
 ```
 
+
+```{r}
+
+ggscatter(new_df, x = "bachelor_degree_or_higher_2015_19", y = "population", 
+          add = "reg.line", conf.int = TRUE, 
+          cor.coef = TRUE, cor.method = "pearson",
+          xlab = "bachelor_degree_or_higher_2015_19", ylab = "population", col = "blue")
+```
