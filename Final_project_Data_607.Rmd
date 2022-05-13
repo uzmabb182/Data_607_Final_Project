@@ -30,6 +30,7 @@ Find the correlation between economic conditions and health
 
 
 ### Importing Libraries
+Interactive plot with ggPredict() function included in ggiraphExtra package
 
 ```{r}
 library(tidycensus)
@@ -40,7 +41,9 @@ library(tidyr)
 library(stringr)
 library(rvest)
 library(ggpubr)
-
+library(ggiraph)
+library(ggiraphExtra)
+library(plyr)
 ```
 
 
@@ -63,10 +66,10 @@ head(tbls)
 
 ```{r}
 
-fips_table <- webpage %>%
+fips_df <- webpage %>%
         html_nodes("#mw-content-text") %>% html_table() %>% .[[1]]
         
-head(fips_table)
+head(fips_df)
 ```
 
 ### Data Cleaning for fips_df:
@@ -74,28 +77,35 @@ head(fips_table)
 ### Renaming the columns
 
 ```{r}
-fips_table <- fips_table %>% 
-  rename(
+fips_df <- fips_df %>% 
+  dplyr::rename(
     fips_code = X1,
     county = X2,
     state = X3
     )
-head(fips_table)
+head(fips_df)
 ```
+
 
 ### Removing the unwanted rows
 
 ```{r}
 
-fips_df <- fips_table[-c(1, 2), ]
+fips_df <- fips_df[-c(1, 2), ]
 
 head(fips_df)
 ```
 
 ```{r}
-fips_df$NAME = paste(fips_df$county, fips_df$state, sep=", ")
-head(fips_df)
+colnames(fips_df) 
 ```
+
+```{r}
+# Drop the columns of the dataframe
+#select (fips_df,-c('.'))
+```
+
+
 
 
 ```{r}
@@ -106,26 +116,41 @@ head(fips_df)
 ### Removing string 'county'
 
 ```{r}
-fips_df$county<-gsub(" County","",as.character(fips_df$county))
+#fips_df$county<-gsub(" County","",as.character(fips_df$county))
 
 head(fips_df)
 ```
 
-### Filtering the data for New Jersey
-
 ```{r}
-# fips_df <- filter(fips_table, state == "New Jersey")
-
-# head(fips_df)
+names(fips_df) <- tolower(names(fips_df))   
+ 
+head(fips_df)
 ```
 
-### Removing the string 'county' from county column
 
+
+### Checking the working directory path and exporting data frame into a CSV file
 ```{r}
-#fips_df$county<-gsub(" County","",as.character(fips_df$county))
+# Get working directory path
+path <- getwd()
+
+path
 
 ```
 
+### Export file as csv to working directory. 
+
+```{r}
+
+write.csv(fips_df, file.path(path, "/posgresql/fips_data.csv"))
+
+```
+
+```{r}
+fips_df$NAME = paste(fips_df$county, fips_df$state, sep=", ")
+names(fips_df) <- tolower(names(fips_df))  
+head(fips_df)
+```
 
 ```{r}
 #str(census_df)
@@ -175,34 +200,23 @@ head(census_df)
 
 ```
 
-```{r}
-census_df <- census_df %>% inner_join(fips_df, by = "NAME")
-
-census_df
-```
-
 
 ### Data Cleaning for census_df:
-### Removing the string 'County' from NAME column
+
+
+
+### Convert colnames to lower case
 
 ```{r}
 
-census_df <- census_df %>%
-  separate(NAME, c("county", "state"), ",")
+names(census_df) <- tolower(names(census_df))   
+ 
 head(census_df)
 ```
-
-### Removing string 'county'
-
-```{r}
-census_df$county<-gsub(" County","",as.character(census_df$county))
-
-head(census_df)
-```
-
 
 
 ### Dropping null rows
+
 ```{r}
 census_df <- na.omit(census_df) #  Remove NA
 head(census_df)
@@ -212,16 +226,73 @@ head(census_df)
 ### Selecting the column of interest
 
 ```{r}
-census_df <- select(census_df, fips_code, county, state, population, median_age, household_income, per_capita_income, poverty_count, unemployment_count)
+census_df <- select(census_df, name, population, median_age, household_income, per_capita_income, poverty_count, unemployment_count)
 
 str(census_df)
 ```
+
+```{r}
+#sort descending
+census_df[order(-census_df$household_income), ]
+```
+
+```{r}
+#df1 <- select(census_df, population, median_age, household_income, poverty_count, unemployment_count, state) 
+# Specify data column
+#aggregate(x= df1$household_income,     
+            
+         # Specify group indicator
+         #by = list(df1$state),      
+            
+         # Specify function (i.e. mean)
+         #FUN = mean)
+```
+
 
 ### Visualize the Census data
 
 ```{r}
 
 ```
+
+
+### Now joining fips_df to census dataset
+
+```{r}
+census_df <- inner_join(census_df, fips_df, by = "name") # Applying inner_join() function
+
+head(census_df)
+```
+
+### Split the name into two
+
+```{r}
+#census_df %>% separate(name, c("county","state"), sep = " County,")
+census_df <- select(census_df,-c(name))
+```
+
+### Removing name column
+
+```{r}
+colnames(census_df)<-gsub(".x","",colnames(census_df))
+head(census_df)
+```
+
+### Removing string 'county' from column values
+
+```{r}
+census_df$county<-gsub(" County","",as.character(census_df$county))
+head(census_df)
+```
+
+
+```{r}
+# converting character type 
+# column to numeric
+census_df <- transform(census_df,
+                             fips_code = as.numeric(fips_code))
+```
+
 
 
 ### Checking the working directory path and exporting data frame into a CSV file
@@ -234,15 +305,14 @@ path
 
 ```
 
-`
-
-### Now joining fips_df to census dataset
+### Export file as csv to working directory.  
 
 ```{r}
-merge_df <- inner_join(census_df, fips_df, by = c("county", "state"))  # Applying inner_join() function
 
-head(merge_df)
+write.csv(census_df, file.path(path, "/posgresql/census_data.csv"))
+
 ```
+
 
 
 ```{r}
@@ -280,11 +350,24 @@ head(education_df)
 str(education_df)
 ```
 
-### Visualize the education dataset:
+### Checking the working directory path and exporting data frame into a CSV file
+
+```{r}
+# Get working directory path
+path <- getwd()
+
+path
+
+```
+
+### Export file as csv to working directory.
 
 ```{r}
 
+write.csv(education_df, file.path(path, "/posgresql/education_data.csv"))
+
 ```
+
 
 
 ```{r}
@@ -294,10 +377,10 @@ education_df$fips_code <- as.integer(education_df$fips_code)
 
 
 ```{r}
-#str(census_df)
+str(census_df)
 #str(education_df)
 
-dim(census_df)
+#dim(census_df)
 #dim(education_df)
 
 ```
@@ -338,8 +421,8 @@ head(new_df)
 ### To calculate the percentage of poverty_count and unemployment_count 
 
 ```{r}
-new_df <- mutate(new_df, percent_poverty_count = (poverty_count/population)*100)
-new_df <- mutate(new_df, percent_unemployment_count = (unemployment_count/population)*100)
+new_df <- mutate(new_df, percent_poverty_rate = (poverty_count/population)*100)
+new_df <- mutate(new_df, percent_unemployment_rate = (unemployment_count/population)*100)
 head(new_df)
 ```
 
@@ -362,7 +445,7 @@ To build a model for estimating bachelor_degree_or_higher_2015_19 based on the p
 Compute the model coefficients:
 
 ```{r}
-model <- lm(percent_of_adults_with_a_bachelor_degree_or_higher_2015_19 ~ population + median_age + household_income + per_capita_income + percent_poverty_count + percent_unemployment_count, data = new_df)
+model <- lm(percent_of_adults_with_a_bachelor_degree_or_higher_2015_19 ~ population + median_age + household_income + per_capita_income + percent_poverty_rate + percent_unemployment_rate, data = new_df)
 summary(model)
 ```
 
@@ -407,10 +490,10 @@ sigma(model)/mean(new_df$percent_of_adults_with_a_bachelor_degree_or_higher_2015
 
 ```{r}
 
-ggscatter(new_df, x = "percent_of_adults_with_a_bachelor_degree_or_higher_2015_19", y = "percent_poverty_count", 
+ggscatter(new_df, x = "percent_of_adults_with_a_bachelor_degree_or_higher_2015_19", y = "percent_poverty_rate", 
           add = "reg.line", conf.int = TRUE, 
           cor.coef = TRUE, cor.method = "pearson",
-          xlab = "percent_of_adults_with_a_bachelor_degree_or_higher_2015_19", ylab = "percent_poverty_count", col = "red")
+          xlab = "percent_of_adults_with_a_bachelor_degree_or_higher_2015_19", ylab = "percent_poverty_rate", col = "red")
 ```
 
 
@@ -422,11 +505,10 @@ ggscatter(new_df, x = "percent_of_adults_with_a_bachelor_degree_or_higher_2015_1
           xlab = "percent_of_adults_with_a_bachelor_degree_or_higher_2015_19", ylab = "household_income", col = "blue")
 ```
 
-
 ```{r}
-
-ggscatter(new_df, x = "percent_of_adults_with_a_bachelor_degree_or_higher_2015_19", y = "per_capita_income", 
-          add = "reg.line", conf.int = TRUE, 
-          cor.coef = TRUE, cor.method = "pearson",
-          xlab = "percent_of_adults_with_a_bachelor_degree_or_higher_2015_19", ylab = "per_capita_income", col = "purple")
+ggplot(new_df,aes(y=household_income,x=percent_of_adults_with_a_bachelor_degree_or_higher_2015_19))+geom_point()+geom_smooth(method="lm")
 ```
+
+
+
+
