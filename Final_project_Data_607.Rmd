@@ -5,32 +5,44 @@ output: html_document
 
 ### Project Proposal:
 
-Source of motivation for the final project: Education and Socioeconomic Status
+Source of motivation for the final project is the article about: Education and Socioeconomic Status
 
 https://www.apa.org/pi/ses/resources/publications/education
 
+### Goal of the Project:
+
+To evaluate the impact of per_capita_income on the educational attainment.
+
+### How to achieve the Goal:
+
+1. Collect the required data.
+2. Perform the exploratory data analysis.
+3. Perform extract load and transform(ETL) process.
+4. Apply a linear regression model.
+5. Estimate the correlation between per_capita_income and the bachelors degree attainment.
+6. Interpretation of the results.
+
+### Data Sources:
+
+Web Scraping is performed to fetch fips code for all US counties: 
+
+https://en.wikipedia.org/wiki/List_of_United_States_FIPS_codes_by_county
 
 
-Economic Research Service
+API call to fetch Census data for all US counties:
+
+https://api.census.gov/data/2019/acs/acs1?get=NAME,B01001_001E&for=county:*
+
+
+A CSV file is downloaded from 'Economic Research Service'
 U.S. DEPARTMENT OF AGRICULTURE:
 
 https://www.ers.usda.gov/data-products/county-level-data-sets/download-data/
 
- 
-Web Scraping list of fips code: https://en.wikipedia.org/wiki/List_of_United_States_FIPS_codes_by_county
-
-
-API Call to census five years data:
-
-https://api.census.gov/data/2019/acs/acs1?get=NAME,B01001_001E&for=county:*
-
-How to achieve the objective:
-
-Find the correlation between economic conditions and health
 
 
 ### Importing Libraries
-Interactive plot with ggPredict() function included in ggiraphExtra package
+
 
 ```{r}
 library(tidycensus)
@@ -118,7 +130,7 @@ head(fips_df)
 ```{r}
 #fips_df$county<-gsub(" County","",as.character(fips_df$county))
 
-head(fips_df)
+#head(fips_df)
 ```
 
 ```{r}
@@ -127,9 +139,8 @@ names(fips_df) <- tolower(names(fips_df))
 head(fips_df)
 ```
 
-
-
 ### Checking the working directory path and exporting data frame into a CSV file
+
 ```{r}
 # Get working directory path
 path <- getwd()
@@ -178,7 +189,7 @@ Sys.getenv("census_api_key")
 Sys.getenv("census_api_key")
 ```
 
-### Fetching Census Data for the year 2010
+### Fetching Census Data for the year 2020
 
 ```{r}
 # https://api.census.gov/data/2019/acs/acs1?get=NAME,B01001_001E&for=county:*
@@ -205,7 +216,7 @@ head(census_df)
 
 
 
-### Convert colnames to lower case
+### Convert colnames to lowercase
 
 ```{r}
 
@@ -234,25 +245,6 @@ str(census_df)
 ```{r}
 #sort descending
 census_df[order(-census_df$household_income), ]
-```
-
-```{r}
-#df1 <- select(census_df, population, median_age, household_income, poverty_count, unemployment_count, state) 
-# Specify data column
-#aggregate(x= df1$household_income,     
-            
-         # Specify group indicator
-         #by = list(df1$state),      
-            
-         # Specify function (i.e. mean)
-         #FUN = mean)
-```
-
-
-### Visualize the Census data
-
-```{r}
-
 ```
 
 
@@ -313,12 +305,12 @@ write.csv(census_df, file.path(path, "/posgresql/census_data.csv"))
 
 ```
 
-
+### Fetching the education data from GitHub
 
 ```{r}
 education_df <- read_csv("https://raw.githubusercontent.com/uzmabb182/Data_607_Final_Project/main/ers_usda_education.csv")
 
-head(education_df)
+#head(education_df)
 ```
 
 ```{r}
@@ -330,7 +322,7 @@ head(education_df)
 education_df <- education_df[-c(2:40)]
 education_df <- education_df[-c(1),]
 
-head(education_df)
+#head(education_df)
 ```
 
 ```{r}
@@ -343,11 +335,11 @@ head(education_df)
 
 ```{r}
 education_df <- na.omit(education_df) # Method 1 - Remove NA
-head(education_df)
+#head(education_df)
 ```
 
 ```{r}
-str(education_df)
+###str(education_df)
 ```
 
 ### Checking the working directory path and exporting data frame into a CSV file
@@ -408,14 +400,7 @@ head(new_df)
 new_df$name = paste(new_df$county, new_df$state, sep=", ")
 new_df <- new_df %>% 
   relocate(name, .before=county)
-head(new_df)
-```
-
-
-```{r}
-new_df <- select(new_df, name, population, median_age, household_income, per_capita_income, poverty_count, unemployment_count, percent_of_adults_with_a_bachelor_degree_or_higher_2015_19)
-
-head(new_df)
+#head(new_df)
 ```
 
 ### To calculate the percentage of poverty_count and unemployment_count 
@@ -423,56 +408,125 @@ head(new_df)
 ```{r}
 new_df <- mutate(new_df, percent_poverty_rate = (poverty_count/population)*100)
 new_df <- mutate(new_df, percent_unemployment_rate = (unemployment_count/population)*100)
-head(new_df)
+#head(new_df)
 ```
 
+### Assumptions for performing linear regression:
 
+Before applying the linear regression model, the following four assumption must be made. And it is important to visualize the data based on these assumption.
 
-### Regression: 
-Regression is a supervised learning algorithm which helps in determining how does one variable influence another variable.
+1.Independence of observations (aka no autocorrelation):
 
-Multiple linear regression is useful for modelling the relationship between a numeric or dependent variable (Y) and multiple explanatory or independent variable (X).
+Since there is only one independent variable and one dependent variable, we don’t need to test for any hidden relationships among variables.
 
-After merging fips code, census, and education data, we would like to analyze the 
+2. Normality:
 
-### Building the Model:
-
-
-To build a model for estimating bachelor_degree_or_higher_2015_19 based on the population + median_age + household_income + per_capita_income + poverty_count + unemployment_count
-
-#### bachelor_degree_or_higher_2015_19 = b0 + b1*population + b2*median_age + b3*household_income + b4*per_capita_income + b5*poverty_count + b6*unemployment_count
-
-Compute the model coefficients:
+The normality can be checked by using the hist() function, which tells whether the dependent variable follows a normal distribution or not.
 
 ```{r}
-model <- lm(percent_of_adults_with_a_bachelor_degree_or_higher_2015_19 ~ population + median_age + household_income + per_capita_income + percent_poverty_rate + percent_unemployment_rate, data = new_df)
+hist(new_df$per_capita_income, 
+     main = "Histohram for Per Capita income",
+     xlab = "Per Capita income",
+     col = "green",
+     border="blue"
+     )
+```
+```{r}
+hist(new_df$percent_of_adults_with_a_bachelor_degree_or_higher_2015_19,
+     main = "Histohram for Bachelor Degree or Higher",
+     xlab = "Bachelor Degree or Higher",
+     col = "blue",
+     border="green")
+```
+
+The histograms show that our data follows the normal distribution.
+
+
+
+3- Linearity:
+
+The relationship between the independent and dependent variable must be linear. We can test this visually with a scatter plot to see if the distribution of data points could be described with a straight line.
+
+```{r}
+plot(percent_of_adults_with_a_bachelor_degree_or_higher_2015_19 ~ per_capita_income, data = new_df, main = "Histohram for Bachelor Degree or Higher",
+     xlab = "Per capita Income",
+     ylab = "Bachelor Degree or Higher",
+     col = "red")
+
+
+```
+
+This scatter plot is showing a linear relationship between x and y variables.
+
+4- Homoscedasticity (aka homogeneity of variance):
+
+This means that the prediction error doesn’t change significantly over the range of prediction of the model.
+
+The residual plots:
+
+```{r}
+model <- lm(percent_of_adults_with_a_bachelor_degree_or_higher_2015_19 ~ per_capita_income, data = new_df)
+par(mfrow=c(2,2))
+plot(model, col = "blue")
+```
+
+The red lines representing the mean of the residuals are all basically horizontal and centered around zero. This means there are no outliers or biases in the data that would make a linear regression invalid.
+
+In the Normal Q-Qplot in the top right, we can see that the real residuals from our model form an almost perfectly one-to-one line with the theoretical residuals from a perfect model.
+
+Based on these residuals, we can say that our model meets the assumption of homoscedasticity.
+
+and the appropriate visualizations helps us better understand the data.
+
+
+### Simple Linear Regression Model: 
+
+Regression is a supervised learning algorithm which helps in determining how does one variable influence another variable.
+
+Simple linear regression is useful for modelling the relationship between a numeric or dependent variable (Y) and multiple explanatory or independent variable (X).
+
+The dependent variable (Y) here is 'percent_of_adults_with_a_bachelor_degree_or_higher_2015_19' and the independent variable (X) is per_capita_income.
+
+
+
+#### Simple Linear Regression Equation:
+
+percent_of_adults_with_a_bachelor_degree_or_higher_2015_19 = b0 + b4*per_capita_income 
+
+
+### Compute the summary of the model:
+
+```{r}
+model <- lm(percent_of_adults_with_a_bachelor_degree_or_higher_2015_19 ~ per_capita_income, data = new_df)
 summary(model)
 ```
 
-The F-Test of overall significance in regression is a test of whether or not your linear regression model provides a better fit to a dataset than a model with no predictor variables. 
 
-The F-Test of overall significance has the following two hypotheses:
+### The F-Test of overall significance has the following two hypotheses:
 
-Null hypothesis (H0) : The model with no predictor variables (also known as an intercept-only model) fits the data as well as your regression model.
+Null hypothesis (H0) : The model with no predictor variables (also known as an intercept-only model) fits the data as well as the regression model defined here.
 
 Alternative hypothesis (HA) : Your regression model fits the data better than the intercept-only model.
 
 ### Interpretation:
 
+A large F-statistic will correspond to a statistically significant p-value (p < 0.05). In our example, the F-statistic equal 62.7 producing a p-value: 5.83e-13, which is highly significant. This means that, the predictor variables is significantly related to the outcome variable.
 
-The first step in interpreting the multiple regression analysis is to examine the F-statistic and the associated p-value.
+And we accept the alternate hypothesis that our regression model fits the data better than the intercept-only model.
 
-The p-value of 7.823e-09 is less than alpha=0.05, which is highly significant. This means that, at least, one of the predictor variables is significantly related to the outcome variable.
+The coefficients table shows the estimate of regression beta coefficients and the associated t-statistics p-values:
 
-To see which predictor variables are significant, you can examine the coefficients table, which shows the estimate of regression beta coefficients and the associated t-statitic p-values:
 
 ```{r}
 summary(model)$coefficient
 ```
+For a given predictor, the t-statistic evaluates whether or not there is significant association between the predictor and the outcome variable, that is whether the beta coefficient of the predictor is significantly different from zero.
 
-The t-statistic evaluates whether or not there is significant association between the predictor and the outcome variable, that is whether the beta coefficient of the predictor is significantly different from zero.
+we can see, changing the per_capita_income variable is significantly associated to changes in percent_of_adults_with_a_bachelor_degree_or_higher_2015_19 
 
-And changing in poverty_count are significantly associated to changes in unemployment_count while changes in household_income, and  per_capita_income is not significantly associated with unemployment_count.
+For a given predictor variable, the coefficient (b) can be interpreted as the average effect on y of a one unit increase in predictor, holding all other predictors fixed.
+
+One unit increase in per_capita_income will significantly increase percent_of_adults_with_a_bachelor_degree_or_higher_2015_19, holding all other predictors fixed.
 
 ### The confidence interval of the model coefficient can be:
 
@@ -480,35 +534,52 @@ And changing in poverty_count are significantly associated to changes in unemplo
 confint(model)
 ```
 
-### The error rate can be estimated by dividing the RSE by the mean outcome variable:
+### Model accuracy assessment:
+
+R-squared:
+
+The value of R will always be positive and will range from zero to one. An R2 value close to 1 indicates that the model explains a large portion of the variance in the outcome variable.
+
+The  R2 = 0.302, meaning that “30% of the variance in the measure of percent_of_adults_with_a_bachelor_degree_or_higher_2015_19 can be predicted by coefficient predictor.
+
+### Residual Standard Error (RSE), or sigma:
+
+The RSE estimate gives a measure of error of prediction. The lower the RSE, the more accurate the model (on the data in hand).
+
+The error rate can be estimated by dividing the RSE by the mean outcome variable:
 
 ```{r}
+
 sigma(model)/mean(new_df$percent_of_adults_with_a_bachelor_degree_or_higher_2015_19)
+
 ```
 
+
+### The correlation coefficient between the two variables using the R function cor():
+
+```{r}
+
+cor(new_df$percent_of_adults_with_a_bachelor_degree_or_higher_2015_19, new_df$per_capita_income, method="pearson")
+
+```
 
 
 ```{r}
 
-ggscatter(new_df, x = "percent_of_adults_with_a_bachelor_degree_or_higher_2015_19", y = "percent_poverty_rate", 
+ggscatter(new_df, x = "percent_of_adults_with_a_bachelor_degree_or_higher_2015_19", y = "per_capita_income", 
           add = "reg.line", conf.int = TRUE, 
           cor.coef = TRUE, cor.method = "pearson",
-          xlab = "percent_of_adults_with_a_bachelor_degree_or_higher_2015_19", ylab = "percent_poverty_rate", col = "red")
+          xlab = "percent_of_adults_with_a_bachelor_degree_or_higher_2015_19", ylab = "per_capita_income", col = "blue")
+
 ```
+
+
+### Using ggPredict() - Visualize Regression Model
+
+### We can show this model with ggPredict() function and adjust the number of regression lines with parameter colorn. 
 
 
 ```{r}
-
-ggscatter(new_df, x = "percent_of_adults_with_a_bachelor_degree_or_higher_2015_19", y = "household_income", 
-          add = "reg.line", conf.int = TRUE, 
-          cor.coef = TRUE, cor.method = "pearson",
-          xlab = "percent_of_adults_with_a_bachelor_degree_or_higher_2015_19", ylab = "household_income", col = "blue")
+ggPredict(model,interactive=TRUE,colorn=10,jitter=FALSE)
 ```
-
-```{r}
-ggplot(new_df,aes(y=household_income,x=percent_of_adults_with_a_bachelor_degree_or_higher_2015_19))+geom_point()+geom_smooth(method="lm")
-```
-
-
-
 
