@@ -3,7 +3,7 @@
 
 ![title](images/title.png)
 
-## motivation for performing this analysis:
+## Motivation for performing this analysis:
 Source of motivation for the final project is the article about: 
 
 
@@ -16,7 +16,7 @@ per capita income on educational attainment.
 
 ![Libraries Imported](images/libraries.png)
 
-## STEPS to achieve the Goal:
+## Steps to achieve the Goal:
 
 ![Goal](images/goals.JPG)
 
