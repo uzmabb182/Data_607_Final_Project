@@ -1,7 +1,7 @@
 # Data_607_Final_Project
 ## Analysis of Education and Socioeconomic Status
 
-![title](images\title.png)
+![title](images/title.png)
 
 ## motivation for performing this analysis:
 Source of motivation for the final project is the article about: 
@@ -14,11 +14,11 @@ Source of motivation for the final project is the article about:
 To evaluate the impact of 
 per capita income on educational attainment.
 
-![Libraries Imported](images\libraries.png)
+![Libraries Imported](images/libraries.png)
 
 ## STEPS to achieve the Goal:
 
-![Goal](images\goals.JPG)
+![Goal](images/goals.JPG)
 
 ## Data Sources:
 
@@ -36,7 +36,7 @@ A CSV file is downloaded from 'Economic Research Service’ U.S. DEPARTMENT OF A
 
 ## Data Cleaning Steps:
 
-![new_df](images\new_df.png)
+![new_df](images/new_df.png)
 
 - The three dataframes ready for cleaning are: fips_df, census_df, and education_df.
 - Removing strings like 'county’.
@@ -51,7 +51,7 @@ A CSV file is downloaded from 'Economic Research Service’ U.S. DEPARTMENT OF A
 
 ## Relational database Design:
 
-![Quick DBD](images\quickdbd.png)
+![Quick DBD](images/quickdbd.png)
 
 ## Assumptions for performing the linear regression:
 
@@ -61,17 +61,17 @@ A CSV file is downloaded from 'Economic Research Service’ U.S. DEPARTMENT OF A
 - Homoscedasticity (aka homogeneity of variance)
 
 
-![Histogram1](images\hist1.png)
+![Histogram1](images/hist1.png)
 
-![Histogram2](images\hist2.png)
+![Histogram2](images/hist2.png)
 
 ## Scatter plot for Assumption test:
 
-![Scatter Plot](images\scatter1.png)
+![Scatter Plot](images/scatter1.png)
 
 ## Homoscedasticity (aka homogeneity of variance):
 
-![figure](images\hom_var_test.png)
+![figure](images/hom_var_test.png)
 
 ## Simple Linear Regression Model & Summary:
 
@@ -86,7 +86,7 @@ Null hypothesis (H0) : The model with no predictor variables (also known as an i
 
 Alternative hypothesis (HA) : Your regression model fits the data better than the intercept-only model.
 
-![Linear Regression](images\summarylm.png)
+![Linear Regression](images/summarylm.png)
 
 ## Interpretation:
 
@@ -96,7 +96,7 @@ And we accept the alternate hypothesis that our regression model fits the data b
 
 ## The correlation coefficient between the two variables:
 
-![Correlation](images\cor.png)
+![Correlation](images/cor.png)
 
 r is always a number between -1 and 1. r > 0 indicates a positive association. r < 0 indicates a negative association. Values of r near 0 indicate a very weak linear relationship.
 
