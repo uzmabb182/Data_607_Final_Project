@@ -448,9 +448,9 @@ The histograms show that our data follows the normal distribution.
 The relationship between the independent and dependent variable must be linear. We can test this visually with a scatter plot to see if the distribution of data points could be described with a straight line.
 
 ```{r}
-plot(percent_of_adults_with_a_bachelor_degree_or_higher_2015_19 ~ per_capita_income, data = new_df, main = "Histohram for Bachelor Degree or Higher",
+plot(percent_of_adults_with_a_bachelor_degree_or_higher_2015_19 ~ per_capita_income, data = new_df, main = "Percent of Adults with Bachelors Degree or Higher Vs Per capita Income",
      xlab = "Per capita Income",
-     ylab = "Bachelor Degree or Higher",
+     ylab = "percent of Adults with Bachelors Degree or Higher",
      col = "red")
 
 
